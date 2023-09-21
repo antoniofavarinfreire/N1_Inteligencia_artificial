@@ -1,119 +1,75 @@
 import pygame
-import sys
+import random
 
-# Inicialização do pygame
+# Inicializa o pygame
 pygame.init()
 
-# Cores
-BLACK = (0, 0, 0)
+# Defina as cores
 WHITE = (255, 255, 255)
-BLUE = (0, 0, 255)
+BLACK = (0, 0, 0)
+FONT = pygame.font.Font(None, 36)
 
-# Tamanho da janela
-WIDTH, HEIGHT = 800, 600
+# Lista para armazenar as entregas
+entregas = []
 
-# Inicialização da janela
-screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Simulação de Leilão de Entregas")
+# Lê o arquivo de entrada
+with open('entregas.txt', 'r') as arquivo:
+    for linha in arquivo:
+        partes = linha.strip().split()
+        if len(partes) == 3:
+            entrega, valor, tempo_inicio = partes
+            entregas.append((entrega, int(valor), int(tempo_inicio)))
 
-# Fonte para exibir texto
-font = pygame.font.Font(None, 36)
+# Inicializa a tela do pygame
+screen = pygame.display.set_mode((800, 600))
+pygame.display.set_caption("Leilão de Entregas")
 
-# Lista de eventos de entrega no formato (tempo, destino, valor)
-eventos_entrega = [
-    (0, "Destino A", 50),
-    (5, "Destino B", 40),
-    (10, "Destino C", 30),
-    # Adicione mais eventos de entrega conforme necessário
-]
-
-# Variáveis para rastrear o tempo e as entregas programadas
+# Parâmetros do leilão
+lance_atual = 0
+melhor_entrega = None
 tempo_atual = 0
-entregas_programadas = []
-lucro_total = 0  # Variável para rastrear o lucro total
-running = True  # Variável para controlar a execução do programa
+lucro_total = 0
 
-# Função para agendar entregas no momento atual
-def agendar_entregas():
-    for evento in eventos_entrega:
-        if evento[0] == tempo_atual:
-            entregas_programadas.append(evento)
-    eventos_entrega[:] = [evento for evento in eventos_entrega if evento[0] > tempo_atual]
+# Função para realizar o leilão
+def realizar_leilao():
+    global lance_atual, melhor_entrega, lucro_total, tempo_atual
+    lance_atual = random.randint(1, 30)  # Gere um lance aleatório
+    melhor_entrega = None
     
-# Função para calcular o lucro total das entregas programadas
-def calcular_lucro(evento):
-    
-    if event[0] == tempo_atual:
-        lucro = sum(evento[2] for evento in entregas_programadas)
-    return lucro
+    for entrega, valor, tempo_inicio in entregas:
+        if tempo_inicio >= tempo_atual and valor >= lance_atual:
+            if melhor_entrega is None or valor > melhor_entrega[1]:
+                melhor_entrega = (entrega, valor, tempo_inicio)
 
-# Função para encerrar o programa de forma controlada
-def encerrar_programa():
-    global running
-    running = False
+    if melhor_entrega:
+        tempo_atual += melhor_entrega[2]
+        lucro_total += melhor_entrega[1]
+        entregas.remove(melhor_entrega)
 
 # Loop principal
+running = True
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 1:
+                realizar_leilao()
 
-    # Limpar a tela
     screen.fill(WHITE)
 
-    # Agendar entregas no tempo atual
-    agendar_entregas()
+    # Exibe informações na tela
+    texto_tempo_atual = FONT.render("Tempo Atual: " + str(tempo_atual), True, BLACK)
+    texto_lance_atual = FONT.render("Lance Atual: $" + str(lance_atual), True, BLACK)
+    texto_melhor_entrega = FONT.render("Melhor Entrega: " + (melhor_entrega[0] if melhor_entrega else "Nenhuma"), True, BLACK)
+    texto_lucro_total = FONT.render("Lucro Total: $" + str(lucro_total), True, BLACK)
 
-    # Desenhar entregas programadas
-    for i, entrega in enumerate(entregas_programadas):
-        text = font.render(f"Entrega para {entrega[1]}: R${entrega[2]}", True, BLACK)
-        screen.blit(text, (50, 100 + i * 40))
-        print(len(entrega))
-        # print(len(eventos_entrega))
-        calcular_lucro(entrega)
-        # if len(eventos_entrega) > 0:
-        #     if entrega[0] == tempo_atual:
-        #         lucro_total += entrega[2]  
-        
+    screen.blit(texto_tempo_atual, (50, 50))
+    screen.blit(texto_lance_atual, (50, 100))
+    screen.blit(texto_melhor_entrega, (50, 150))
+    screen.blit(texto_lucro_total, (50, 200))
 
-    # Exibir tempo atual
-    tempo_text = font.render(f"Tempo Atual: {tempo_atual}", True, BLACK)
-    screen.blit(tempo_text, (50, 50))
-    
-    lucro_text = font.render(f"Lucro Atual: R${lucro_total}", True, BLACK)
-    screen.blit(lucro_text, (350, 50))
-
-    # Adicionar botão para encerrar o programa
-    pygame.draw.rect(screen, BLUE, (50, 350, 150, 50))
-    encerrar_text = font.render("Encerrar", True, WHITE)
-    screen.blit(encerrar_text, (60, 360))
-
-    # Verificar se o botão de encerrar foi clicado
-    mouse_x, mouse_y = pygame.mouse.get_pos()
-    if 50 <= mouse_x <= 200 and 350 <= mouse_y <= 400:
-        pygame.draw.rect(screen, BLACK, (50, 350, 150, 50), 2)  # Destacar o botão se o mouse estiver sobre ele
-        if pygame.mouse.get_pressed()[0]:  # Verificar se o botão do mouse foi clicado
-            encerrar_programa()
-
-    # Atualizar a tela
     pygame.display.flip()
 
-    # Avançar o tempo
-    if eventos_entrega:
-        tempo_atual += 1
-
-    # Controlar a taxa de atualização da tela
-    pygame.time.delay(350)
-
-# Exibir o lucro total quando a simulação terminar
-print("Lucro Total:", lucro_total)
-
-# Encerrar o pygame
+# Encerra o pygame
 pygame.quit()
-sys.exit()
-
-
-
-
-
- 

@@ -1,3 +1,5 @@
+import time
+import matplotlib.pyplot as plt
 def leilao_entregas_versao1(destinos_conexoes, entregas):
     lucro_total = 0
     tempo_atual = 0
@@ -111,3 +113,42 @@ lucro, caminho, tempo = leilao_entregas_versao3(destinos_conexoes, entregas)
 print("Lucro máximo:", lucro)
 print("Caminho ótimo:", caminho)
 print("Tempo ótimo:", tempo)
+
+# Medir o tempo de execução e o lucro para cada versão
+tempo_inicio = time.time()
+lucro_versao_a = leilao_entregas_versao1(destinos_conexoes, entregas)
+tempo_versao_a = time.time() - tempo_inicio
+
+tempo_inicio = time.time()
+lucro_versao_b = leilao_entregas_versao2(destinos_conexoes, entregas)
+tempo_versao_b = time.time() - tempo_inicio
+
+tempo_inicio = time.time()
+lucro_versao_c = leilao_entregas_versao3(destinos_conexoes, entregas)
+tempo_versao_c = time.time() - tempo_inicio
+
+# Imprimir os resultados
+print("Versão A:")
+print("Tempo de Execução:", tempo_versao_a)
+print("Lucro Obtido:", lucro_versao_a)
+
+print("Versão B:")
+print("Tempo de Execução:", tempo_versao_b)
+print("Lucro Obtido:", lucro_versao_b)
+
+print("Versão C:")
+print("Tempo de Execução:", tempo_versao_c)
+print("Lucro Obtido:", lucro_versao_c)
+
+
+
+# Dados para o gráfico
+versoes = ["Versão A", "Versão B", "Versão C"]
+tempos = [tempo_versao_a, tempo_versao_b, tempo_versao_c]
+
+# Criar o gráfico de barras
+plt.bar(versoes, tempos)
+plt.xlabel("Versões")
+plt.ylabel("Tempo de Execução (segundos)")
+plt.title("Comparação de Tempo de Execução")
+plt.show()
